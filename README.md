@@ -11,8 +11,8 @@ capitole-odoo/
 ├── public/
 │   └── index.html          ← Interface utilisateur (charte graphique 2026)
 ├── data/
-│   └── Comptes_analytiques.xlsx   ← ⚠️ À placer ici (référentiel — non versionné)
-├── transfo_odoo.py          ← Logique de transformation (inchangée)
+│   └── Comptes_analytiques.xlsx   
+├── transfo_odoo.py          ← Logique de transformation 
 ├── requirements.txt         ← Dépendances Python
 ├── vercel.json              ← Configuration Vercel
 └── .gitignore
