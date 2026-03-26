@@ -25,24 +25,8 @@ capitole-odoo/
 - [Vercel CLI](https://vercel.com/docs/cli) installé : `npm i -g vercel`
 - Dépôt GitHub créé
 
-### 2. Placer le référentiel
-Copier le fichier `Comptes_analytiques.xlsx` dans le dossier `data/` :
-```
-data/Comptes_analytiques.xlsx
-```
-> Ce fichier est listé dans `.gitignore` pour éviter de versionner des données sensibles.
-> Sur Vercel, il sera inclus dans le build via la configuration ci-dessous.
 
-### 3. Pousser sur GitHub
-```bash
-git init
-git add .
-git commit -m "feat: application import odoo capitole"
-git remote add origin https://github.com/VOTRE_ORG/capitole-odoo.git
-git push -u origin main
-```
-
-### 4. Connecter à Vercel
+### 2. Connecter à Vercel
 ```bash
 vercel
 ```
@@ -52,7 +36,7 @@ Ou via l'interface Vercel :
 3. Build & Output Settings : laisser par défaut
 4. Deploy
 
-### 5. Utilisation
+### 3. Utilisation
 - Accéder à l'URL Vercel générée
 - Déposer un fichier `Salesforce.xlsx` avec l'onglet **"Import Odoo"**
 - Cliquer sur **Lancer la transformation**
