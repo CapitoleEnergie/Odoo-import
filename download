@@ -1,0 +1,19 @@
+# Fichiers de sortie et uploads temporaires — ne pas versionner
+Salesforce*.xlsx
+Salesforce*.xls
+*_transforme.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
