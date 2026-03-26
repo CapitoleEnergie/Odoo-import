@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Odoo — Capitole Énergie</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..60,400;12..60,700;12..60,800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu:        #0C32FF;
+    --rose:        #E543DC;
+    --jaune:       #FFC14F;
+    --noir:        #232323;
+    --blanc:       #FFFFFF;
+    --principal:   #5020EA;
+    --bleu-clair:  #EDEDFF;
+    --blanc-bloc:  #F3F3F3;
+    --gris:        #E3E3E3;
+    --grad:        linear-gradient(135deg, #0C32FF 0%, #E543DC 55%, #FFC14F 100%);
+    --grad-marque: linear-gradient(160deg, #EDEDFF 0%, #FFFFFF 100%);
+    --vert:        #2E9879;
+    --vert-bg:     #E8F8ED;
+    --rouge:       #C43D00;
+    --rouge-bg:    #FFF4F1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--grad-marque);
+    min-height: 100vh;
+    color: var(--noir);
+  }
+
+  /* ── GRAD BAR ── */
+  .grad-bar {
+    height: 4px;
+    background: var(--grad);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: white;
+    border-bottom: 1px solid var(--gris);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(80,32,234,0.07);
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--noir);
+    line-height: 1.1;
+  }
+
+  .logo-text span {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: #888;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-divider { width: 1px; height: 28px; background: var(--gris); }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--principal);
+    background: var(--bleu-clair);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 52px 24px 100px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--principal);
+    background: var(--bleu-clair);
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.07;
+    color: var(--noir);
+    margin-bottom: 14px;
+  }
+
+  .hero h1 .accent {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: #666;
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* ── STEPS BANNER ── */
+  .steps-banner {
+    background: white;
+    border: 1px solid var(--gris);
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .step-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 18px;
+    width: calc(100% - 56px);
+    height: 2px;
+    background: var(--gris);
+    left: calc(50% + 28px);
+    transform: none;
+  }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    transition: all 0.4s ease;
+  }
+
+  .step-num.pending  { background: var(--blanc-bloc); color: #aaa; border: 2px solid var(--gris); }
+  .step-num.active   { background: var(--grad); color: white; box-shadow: 0 4px 16px rgba(80,32,234,0.3); }
+  .step-num.done     { background: var(--vert); color: white; }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    line-height: 1.4;
+    transition: color 0.3s;
+    max-width: 110px;
+  }
+
+  .step-label.active { color: var(--principal); }
+  .step-label.done   { color: var(--vert); }
+
+  .step-desc {
+    font-size: 10px;
+    color: #bbb;
+    margin-top: 3px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: white;
+    border: 1px solid var(--gris);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: box-shadow 0.2s;
+  }
+
+  .card-header {
+    padding: 20px 28px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bleu-clair);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--noir);
+  }
+
+  .card-body { padding: 20px 28px 28px; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed var(--gris);
+    border-radius: 14px;
+    padding: 44px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    background: var(--blanc-bloc);
+  }
+
+  .upload-zone:hover,
+  .upload-zone.drag-over {
+    border-color: var(--principal);
+    background: var(--bleu-clair);
+  }
+
+  .upload-zone.loaded {
+    border-color: var(--vert);
+    border-style: solid;
+    background: var(--vert-bg);
+  }
+
+  .upload-zone-icon {
+    font-size: 44px;
+    margin-bottom: 14px;
+    display: block;
+    transition: transform 0.2s;
+  }
+
+  .upload-zone:hover .upload-zone-icon { transform: translateY(-3px); }
+
+  .upload-zone h3 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--noir);
+    margin-bottom: 6px;
+    transition: color 0.2s;
+  }
+
+  .upload-zone.loaded h3 { color: var(--vert); }
+  .upload-zone.drag-over h3 { color: var(--principal); }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: #999;
+    line-height: 1.5;
+  }
+
+  .upload-zone.loaded p { color: var(--vert); font-weight: 500; }
+
+  .upload-constraints {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .constraint-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: white;
+    color: var(--principal);
+    border: 1px solid var(--bleu-clair);
+  }
+
+  input[type="file"] { display: none; }
+
+  /* ── REQUIREMENTS ── */
+  .requirements {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .req-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--blanc-bloc);
+    border-radius: 10px;
+    border: 1px solid var(--gris);
+  }
+
+  .req-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .req-text strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--noir);
+  }
+
+  .req-text span {
+    font-size: 11px;
+    color: #888;
+  }
+
+  /* ── BTN ── */
+  .btn-primary {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: white;
+    background: var(--principal);
+    border: none;
+    border-radius: 12px;
+    padding: 15px 40px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(80,32,234,0.25);
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #3a15c7;
+    box-shadow: 0 8px 32px rgba(80,32,234,0.38);
+    transform: translateY(-2px);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* ── LOADER ── */
+  .loader-card {
+    background: white;
+    border: 1px solid var(--gris);
+    border-radius: 20px;
+    padding: 52px 40px;
+    text-align: center;
+    display: none;
+    margin-bottom: 24px;
+  }
+
+  .loader-ring {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .loader-ring::before,
+  .loader-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 5px solid transparent;
+  }
+
+  .loader-ring::before {
+    border-top-color: var(--principal);
+    border-right-color: var(--rose);
+    animation: spin 1s linear infinite;
+  }
+
+  .loader-ring::after {
+    border-bottom-color: var(--jaune);
+    border-left-color: var(--bleu);
+    animation: spin 1.5s linear infinite reverse;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--noir);
+    margin-bottom: 6px;
+  }
+
+  .loader-sub {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+  }
+
+  .loader-progress {
+    width: 280px;
+    height: 4px;
+    background: var(--gris);
+    border-radius: 2px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .loader-bar {
+    height: 100%;
+    background: var(--grad);
+    border-radius: 2px;
+    animation: loadprogress 2.8s ease-in-out forwards;
+  }
+
+  @keyframes loadprogress {
+    0%   { width: 0%; }
+    20%  { width: 20%; }
+    50%  { width: 55%; }
+    80%  { width: 80%; }
+    95%  { width: 92%; }
+  }
+
+  /* ── RESULT CARD ── */
+  .result-card {
+    background: white;
+    border: 1px solid var(--gris);
+    border-radius: 20px;
+    overflow: hidden;
+    display: none;
+    animation: fadeUp 0.45s ease both;
+    margin-bottom: 24px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    background: linear-gradient(135deg, var(--vert) 0%, #22c78a 100%);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .result-header-info h2 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .result-header-info p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .result-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    padding: 7px 14px;
+    text-align: center;
+  }
+
+  .meta-chip .num {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    display: block;
+  }
+
+  .meta-chip .lbl {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .result-body {
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .result-file-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .file-icon-big {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #E8F8ED;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+
+  .file-details strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--noir);
+    margin-bottom: 3px;
+  }
+
+  .file-details span {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .btn-download {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    background: var(--vert);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 30px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 18px rgba(46,152,121,0.3);
+    text-decoration: none;
+  }
+
+  .btn-download:hover {
+    background: #237a60;
+    box-shadow: 0 7px 28px rgba(46,152,121,0.4);
+    transform: translateY(-2px);
+  }
+
+  .btn-reset {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: #888;
+    background: var(--blanc-bloc);
+    border: 1px solid var(--gris);
+    border-radius: 10px;
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .btn-reset:hover { background: var(--gris); color: var(--noir); }
+
+  /* ── ERROR ── */
+  .error-card {
+    background: var(--rouge-bg);
+    border: 1.5px solid #F3B09A;
+    border-radius: 16px;
+    padding: 22px 26px;
+    display: none;
+    margin-bottom: 24px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .error-card-inner {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .error-icon { font-size: 24px; flex-shrink: 0; }
+
+  .error-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--rouge);
+    margin-bottom: 5px;
+  }
+
+  .error-msg { font-size: 13px; color: #8B3000; line-height: 1.6; }
+
+  /* ── FOOTER NOTE ── */
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: #bbb;
+    margin-top: 20px;
+    line-height: 1.6;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    main { padding: 28px 16px 60px; }
+    header { padding: 0 16px; }
+    .steps-banner { padding: 16px 20px; }
+    .requirements { grid-template-columns: 1fr; }
+    .result-body { flex-direction: column; }
+    .btn-download { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grad-bar"></div>
+
+<header>
+  <div class="logo-area">
+    <!-- Logo Capitole Énergie SVG inline -->
+    <svg class="logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="8" fill="url(#logoGrad)"/>
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+          <stop offset="0%" stop-color="#0C32FF"/>
+          <stop offset="50%" stop-color="#E543DC"/>
+          <stop offset="100%" stop-color="#FFC14F"/>
+        </linearGradient>
+      </defs>
+      <text x="7" y="26" font-family="Poppins" font-weight="800" font-size="18" fill="white">C</text>
+    </svg>
+    <div class="logo-text">
+      Capitole Énergie
+      <span>by epsa</span>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-badge">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+    Import Odoo
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      Transformation de données
+    </div>
+    <h1>Transformez votre export<br><span class="accent">Salesforce → Odoo</span></h1>
+    <p>Déposez votre fichier Salesforce, le fichier est transformé automatiquement et prêt à être importé dans Odoo en quelques secondes.</p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps-banner" id="stepsBanner">
+    <div class="step-item">
+      <div class="step-num active" id="step1Num">1</div>
+      <div class="step-label active" id="step1Lbl">Déposer le fichier</div>
+      <div class="step-desc">Salesforce.xlsx</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num pending" id="step2Num">2</div>
+      <div class="step-label" id="step2Lbl">Transformation</div>
+      <div class="step-desc">Traitement automatique</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num pending" id="step3Num">3</div>
+      <div class="step-label" id="step3Lbl">Téléchargement</div>
+      <div class="step-desc">Fichier prêt pour Odoo</div>
+    </div>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card" id="uploadCard">
+    <div class="card-header">
+      <div class="card-icon">📤</div>
+      <div class="card-title">Importer votre fichier Salesforce</div>
+    </div>
+    <div class="card-body">
+
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this)">
+        <span class="upload-zone-icon" id="uploadIcon">📊</span>
+        <h3 id="uploadTitle">Glissez votre fichier ici</h3>
+        <p id="uploadDesc">ou cliquez pour parcourir votre ordinateur</p>
+        <div class="upload-constraints">
+          <span class="constraint-tag">Excel .xlsx</span>
+          <span class="constraint-tag">Onglet "Import Odoo"</span>
+          <span class="constraint-tag">Nommé "Salesforce"</span>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="requirements">
+        <div class="req-item">
+          <div class="req-icon" style="background:#EDEDFF">📋</div>
+          <div class="req-text">
+            <strong>Nom du fichier</strong>
+            <span>Doit s'appeler Salesforce.xlsx</span>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon" style="background:#EDEDFF">📑</div>
+          <div class="req-text">
+            <strong>Onglet requis</strong>
+            <span>L'onglet doit se nommer "Import Odoo"</span>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon" style="background:#EDEDFF">📊</div>
+          <div class="req-text">
+            <strong>Format</strong>
+            <span>Export Salesforce standard</span>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon" style="background:#EDEDFF">⚙️</div>
+          <div class="req-text">
+            <strong>Référentiel</strong>
+            <span>Comptes analytiques intégrés</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="transformBtn" onclick="transformFile()" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+        Lancer la transformation
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader-card" id="loaderCard">
+    <div class="loader-ring"></div>
+    <div class="loader-title" id="loaderTitle">Transformation en cours…</div>
+    <div class="loader-sub" id="loaderSub">Lecture du fichier Salesforce et application des règles Odoo</div>
+    <div class="loader-progress">
+      <div class="loader-bar" id="loaderBar"></div>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-card" id="errorCard">
+    <div class="error-card-inner">
+      <div class="error-icon">⚠️</div>
+      <div>
+        <div class="error-title">Une erreur est survenue</div>
+        <div class="error-msg" id="errorMsg">Le fichier n'a pas pu être transformé.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div class="result-header-info">
+        <h2>✅ Transformation réussie !</h2>
+        <p>Votre fichier est prêt à être importé dans Odoo</p>
+      </div>
+      <div class="result-meta">
+        <div class="meta-chip">
+          <span class="num" id="metaRows">—</span>
+          <span class="lbl">Lignes</span>
+        </div>
+        <div class="meta-chip">
+          <span class="num" id="metaCols">—</span>
+          <span class="lbl">Colonnes</span>
+        </div>
+      </div>
+    </div>
+    <div class="result-body">
+      <div class="result-file-info">
+        <div class="file-icon-big">📗</div>
+        <div class="file-details">
+          <strong id="resultFilename">Salesforce_transforme.xlsx</strong>
+          <span id="resultFilesize">Prêt au téléchargement</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="#" class="btn-download" id="downloadBtn" download>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Télécharger le fichier
+        </a>
+        <button class="btn-reset" onclick="reset()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+          Nouveau fichier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Capitole Énergie by epsa — Transformation Salesforce → Odoo<br>
+    Les données ne sont jamais stockées. Le traitement est effectué en mémoire.
+  </div>
+
+</main>
+
+<script>
+  let selectedFile = null;
+
+  // ── DRAG & DROP ──
+  const dropZone = document.getElementById('dropZone');
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFileSelection(file);
+  });
+
+  function handleFile(input) {
+    const file = input.files[0];
+    if (file) processFileSelection(file);
+  }
+
+  function processFileSelection(file) {
+    selectedFile = file;
+    dropZone.classList.add('loaded');
+    document.getElementById('uploadIcon').textContent = '✅';
+    document.getElementById('uploadTitle').textContent = file.name;
+    document.getElementById('uploadDesc').textContent =
+      `${(file.size / 1024).toFixed(1)} Ko — prêt à transformer`;
+    document.getElementById('transformBtn').disabled = false;
+  }
+
+  // ── STEPS ──
+  function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+      const numEl = document.getElementById(`step${i}Num`);
+      const lblEl = document.getElementById(`step${i}Lbl`);
+      if (i < n) {
+        numEl.className = 'step-num done';
+        numEl.textContent = '✓';
+        lblEl.className = 'step-label done';
+      } else if (i === n) {
+        numEl.className = 'step-num active';
+        numEl.textContent = i;
+        lblEl.className = 'step-label active';
+      } else {
+        numEl.className = 'step-num pending';
+        numEl.textContent = i;
+        lblEl.className = 'step-label';
+      }
+    }
+  }
+
+  // ── TRANSFORM ──
+  async function transformFile() {
+    if (!selectedFile) return;
+
+    // Show loader
+    document.getElementById('uploadCard').style.display   = 'none';
+    document.getElementById('loaderCard').style.display   = 'block';
+    document.getElementById('errorCard').style.display    = 'none';
+    document.getElementById('resultCard').style.display   = 'none';
+    setStep(2);
+
+    // Reset progress bar animation
+    const bar = document.getElementById('loaderBar');
+    bar.style.animation = 'none';
+    bar.offsetHeight; // reflow
+    bar.style.animation = '';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await fetch('/api/transform', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(errData.detail || `Erreur serveur ${response.status}`);
+      }
+
+      // Get metadata from headers
+      const rows  = response.headers.get('X-Rows')     || '—';
+      const cols  = response.headers.get('X-Cols')     || '—';
+      const fname = response.headers.get('X-Filename') || 'Salesforce_transforme.xlsx';
+
+      // Download blob
+      const blob = await response.blob();
+      const url  = URL.createObjectURL(blob);
+
+      // Update result UI
+      document.getElementById('metaRows').textContent     = rows;
+      document.getElementById('metaCols').textContent     = cols;
+      document.getElementById('resultFilename').textContent = fname;
+      document.getElementById('resultFilesize').textContent = `${(blob.size / 1024).toFixed(1)} Ko`;
+
+      const dlBtn = document.getElementById('downloadBtn');
+      dlBtn.href     = url;
+      dlBtn.download = fname;
+
+      // Show result
+      document.getElementById('loaderCard').style.display  = 'none';
+      document.getElementById('resultCard').style.display  = 'block';
+      setStep(3);
+
+    } catch (err) {
+      document.getElementById('loaderCard').style.display = 'none';
+      document.getElementById('errorCard').style.display  = 'block';
+      document.getElementById('errorMsg').textContent     = err.message;
+      document.getElementById('uploadCard').style.display = 'block';
+      setStep(1);
+    }
+  }
+
+  // ── RESET ──
+  function reset() {
+    selectedFile = null;
+    dropZone.classList.remove('loaded');
+    document.getElementById('uploadIcon').textContent = '📊';
+    document.getElementById('uploadTitle').textContent = 'Glissez votre fichier ici';
+    document.getElementById('uploadDesc').textContent = 'ou cliquez pour parcourir votre ordinateur';
+    document.getElementById('transformBtn').disabled = true;
+    document.getElementById('fileInput').value = '';
+
+    document.getElementById('uploadCard').style.display  = 'block';
+    document.getElementById('loaderCard').style.display  = 'none';
+    document.getElementById('errorCard').style.display   = 'none';
+    document.getElementById('resultCard').style.display  = 'none';
+    setStep(1);
+  }
+</script>
+
+</body>
+</html>
