@@ -309,6 +309,7 @@ def transform_import_odoo(input_excel_path, referentiel_path, output_excel_path=
             df = df.drop(columns=[col])
 
     rename_map = {
+        "Fournisseur  ↑": "Client",
         "Fournisseur ↑": "Client",
         "Fournisseur": "Client",
         "Date de Début Souhaitée": "Lignes de la commande/Description3",
