@@ -30,7 +30,11 @@ def safe_round(value, decimals=3):
     if pd.isna(value) or value == "":
         return np.nan
     try:
-        return round(float(value), decimals)
+        txt = str(value).strip().replace(",", ".")
+        num = float(txt)
+        if pd.isna(num):
+            return np.nan
+        return round(num, decimals)
     except Exception:
         return np.nan
 
@@ -47,17 +51,22 @@ def format_number_fr(value, decimals=3):
         return to_str(value)
 
 
-def to_percent_int(value):
+def to_percent_int(value, default=0):
     if pd.isna(value) or value == "":
-        return None
+        return default
     try:
+        txt = str(value).strip().replace(",", ".")
+        if txt == "":
+            return default
         # accepte 0.75 ou 75
-        num = float(value)
+        num = float(txt)
+        if pd.isna(num):
+            return default
         if num <= 1:
             num = num * 100
         return int(round(num))
     except Exception:
-        return None
+        return default
 
 
 def clean_id(value):
@@ -205,11 +214,16 @@ def build_analytics(row):
 
     if not bu or not type_ or not produit or not code:
         return "", "Code analytique incomplet"
-    if pct is None:
-        return "", "Pourcentage rétrocession manquant ou invalide"
+    if pct is None or pd.isna(pct) or str(pct).strip() == "":
+        pct = 0
+
+    try:
+        pct = int(round(float(str(pct).replace(",", "."))))
+    except Exception:
+        pct = 0
 
     # borne de sécurité
-    pct = max(0, min(100, int(pct)))
+    pct = max(0, min(100, pct))
 
     distribution = {}
     key_main = build_distribution_key(bu, type_, produit, code)
@@ -337,8 +351,8 @@ def transform_import_odoo(
     if len(df) >= 4:
         df = df.iloc[:-4].copy()
 
-    df["Pourcentage.1"] = pd.to_numeric(df["Pourcentage.1"], errors="coerce")
-    df["Pourcentage"] = df["Pourcentage.1"].apply(to_percent_int)
+    df["Pourcentage.1"] = pd.to_numeric(df["Pourcentage.1"], errors="coerce").fillna(0)
+    df["Pourcentage"] = df["Pourcentage.1"].apply(lambda x: to_percent_int(x, default=0)).fillna(0).astype(int)
 
     analytics = df.apply(build_analytics, axis=1, result_type="expand")
     analytics.columns = ["Lignes de la commande/Distribution Analytique", "Erreur analytique"]
