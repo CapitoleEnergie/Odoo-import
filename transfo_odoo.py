@@ -310,6 +310,7 @@ def transform_import_odoo(input_excel_path, referentiel_path, output_excel_path=
 
     rename_map = {
         "Fournisseur ↑": "Client",
+        "Fournisseur": "Client",
         "Date de Début Souhaitée": "Lignes de la commande/Description3",
         "Date de fin contrat CE": "Lignes de la commande/Description4",
         "Account Name": "Lignes de la commande/Description1",
