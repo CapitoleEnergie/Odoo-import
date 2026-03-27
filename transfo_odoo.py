@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+
 # =========================
 # OUTILS GÉNÉRAUX
 # =========================
@@ -30,11 +31,7 @@ def safe_round(value, decimals=3):
     if pd.isna(value) or value == "":
         return np.nan
     try:
-        txt = str(value).strip().replace(",", ".")
-        num = float(txt)
-        if pd.isna(num):
-            return np.nan
-        return round(num, decimals)
+        return round(float(str(value).replace(",", ".")), decimals)
     except Exception:
         return np.nan
 
@@ -51,32 +48,31 @@ def format_number_fr(value, decimals=3):
         return to_str(value)
 
 
-def to_percent_int(value, default=0):
+def parse_percent_to_int(value, default=0):
+    """
+    Convertit proprement:
+    - 0.75 -> 75
+    - 75 -> 75
+    - "" / NaN -> 0
+    """
     if pd.isna(value) or value == "":
-        return default
+        return int(default)
     try:
-        txt = str(value).strip().replace(",", ".")
+        txt = str(value).strip().replace("%", "").replace(",", ".")
         if txt == "":
-            return default
-        # accepte 0.75 ou 75
+            return int(default)
         num = float(txt)
-        if pd.isna(num):
-            return default
-        if num <= 1:
-            num = num * 100
+        if np.isnan(num):
+            return int(default)
+        if 0 <= num <= 1:
+            num *= 100
         return int(round(num))
     except Exception:
-        return default
+        return int(default)
 
 
-def clean_id(value):
-    txt = to_str(value)
-    if not txt:
-        return ""
-    try:
-        return str(int(float(txt)))
-    except Exception:
-        return txt
+def clean_text_series(series):
+    return series.fillna("").astype(str).str.strip()
 
 
 # =========================
@@ -123,7 +119,7 @@ def load_referentiel(referentiel_path):
 
     ref["Plan_norm"] = ref["Plan"].apply(normalize_text)
     ref["Compte_norm"] = ref["Compte analytique"].apply(normalize_text)
-    ref["ID"] = ref["ID"].apply(clean_id)
+    ref["ID"] = ref["ID"].astype(str).str.strip()
 
     maps = {}
     for plan_name in ref["Plan_norm"].dropna().unique():
@@ -143,116 +139,149 @@ def get_ref_id(maps, plan, label, default=None, aliases=None):
 def build_codes_from_referentiel(df, maps):
     # BU
     bu_externe = get_ref_id(maps, "01 - BU", "01- Courtage Externe", default="49")
-    bu_interne = get_ref_id(maps, "01 - BU", "02 - Courtage Interne", default="48")
+    bu_interne = get_ref_id(maps, "01 - BU", "02 - Courtage Internes", default="48")
 
-    df["AA_interne"] = (
-        df["Apporteur d'affaire"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-        .str.upper()
-        .eq("CAPITOLE ENERGIE")
+    df["Gestionnaire-BU"] = np.where(
+        clean_text_series(df["Apporteur d'affaire"]).str.upper() != "CAPITOLE ENERGIE",
+        str(bu_externe),
+        str(bu_interne),
     )
-    df["Gestionnaire-BU"] = np.where(df["AA_interne"], str(bu_interne), str(bu_externe))
 
     # Type
-    df["Type"] = df["Type"].apply(
-        lambda x: get_ref_id(maps, "02 - Niveau", x, default=None, aliases=ALIASES_02)
+    df["TypeAnalytique"] = df["Type"].apply(
+        lambda x: get_ref_id(maps, "02 - Niveau", x, default="", aliases=ALIASES_02)
     )
 
     # Produit
-    df["Valeur:Produit"] = df["Lignes de la commande/Produit"].apply(
-        lambda x: get_ref_id(maps, "03 - Niveau", x, default=None, aliases=ALIASES_03)
+    df["ProduitAnalytique"] = df["Lignes de la commande/Produit"].apply(
+        lambda x: get_ref_id(maps, "03 - Niveau", x, default="", aliases=ALIASES_03)
     )
 
-    # Codes apporteur / vendeur
+    # Niveau 4 = apporteur si trouvé, sinon vendeur, sinon 0
     def map_codes_ok(row):
         apporteur = row.get("Apporteur d'affaire", "")
         vendeur = row.get("Vendeur", "")
-
-        code_apporteur = get_ref_id(
-            maps, "04 - Niveau", apporteur, default=None, aliases=ALIASES_04
-        )
+        code_apporteur = get_ref_id(maps, "04 - Niveau", apporteur, default=None, aliases=ALIASES_04)
         if code_apporteur is not None:
-            return clean_id(code_apporteur)
+            return str(code_apporteur)
 
-        code_vendeur = get_ref_id(
-            maps, "04 - Niveau", vendeur, default=None, aliases=ALIASES_04
-        )
+        code_vendeur = get_ref_id(maps, "04 - Niveau", vendeur, default=None, aliases=ALIASES_04)
         if code_vendeur is not None:
-            return clean_id(code_vendeur)
+            return str(code_vendeur)
 
-        return ""
+        return "0"
 
     df["Codes OK"] = df.apply(map_codes_ok, axis=1)
 
-    ce_aa = get_ref_id(
-        maps,
-        "04 - Niveau",
-        "Capitole Energie AA",
-        default="76",
-        aliases=ALIASES_04,
+    ce_aa = get_ref_id(maps, "04 - Niveau", "Capitole Energie AA", default="76", aliases=ALIASES_04)
+    df["Capitole Energie AA"] = np.where(
+        df["Gestionnaire-BU"].astype(str).str.startswith("49"),
+        str(ce_aa),
+        "",
     )
-    df["Capitole Energie AA"] = np.where(~df["AA_interne"], clean_id(ce_aa), "")
     return df
 
 
-def build_distribution_key(*ids):
-    ids = [clean_id(v) for v in ids if clean_id(v)]
-    if len(ids) < 4:
+# =========================
+# MISE EN FORME
+# =========================
+def format_date_for_note(value):
+    if pd.isna(value) or value == "":
         return ""
-    return ",".join(ids)
-
-
-def build_analytics(row):
-    bu = row.get("Gestionnaire-BU", "")
-    type_ = row.get("Type", "")
-    produit = row.get("Valeur:Produit", "")
-    code = row.get("Codes OK", "")
-    ce = row.get("Capitole Energie AA", "")
-    pct = row.get("Pourcentage", None)
-
-    if not bu or not type_ or not produit or not code:
-        return "", "Code analytique incomplet"
-    if pct is None or pd.isna(pct) or str(pct).strip() == "":
-        pct = 0
-
     try:
-        pct = int(round(float(str(pct).replace(",", "."))))
+        dt = pd.to_datetime(value, errors="coerce", dayfirst=True)
+        if pd.notna(dt):
+            return dt.strftime("%d/%m/%Y")
     except Exception:
-        pct = 0
+        pass
+    return str(value).strip()
 
-    # borne de sécurité
-    pct = max(0, min(100, pct))
 
-    distribution = {}
-    key_main = build_distribution_key(bu, type_, produit, code)
-    if not key_main:
-        return "", "Clé analytique principale invalide"
-    distribution[key_main] = pct
+def build_distribution_json(row):
+    bu = to_str(row.get("Gestionnaire-BU"))
+    type_ = to_str(row.get("TypeAnalytique"))
+    produit = to_str(row.get("ProduitAnalytique"))
+    code = to_str(row.get("Codes OK"))
 
-    # Pour AA externes, on complète avec Capitole Energie AA
+    pct_main = parse_percent_to_int(row.get("Pourcentage.1"), default=0)
+    payload = {}
+
+    key_main = ",".join([bu, type_, produit, code])
+    payload[key_main] = pct_main
+
+    ce = to_str(row.get("Capitole Energie AA"))
     if ce:
-        pct_diff = 100 - pct
-        if pct_diff > 0:
-            key_ce = build_distribution_key(bu, type_, produit, ce)
-            if not key_ce:
-                return "", "Clé analytique Capitole Energie AA invalide"
-            distribution[key_ce] = pct_diff
+        pct_ce = max(0, 100 - pct_main)
+        key_ce = ",".join([bu, type_, produit, ce])
+        payload[key_ce] = pct_ce
 
-    # json.dumps garantit un JSON valide
-    return json.dumps(distribution, ensure_ascii=False, separators=(",", ":")), ""
+    return json.dumps(payload, ensure_ascii=False)
+
+
+def build_product_row(row):
+    energie = to_str(row.get("Lignes de la commande/Produit"))
+    return {
+        "Client": to_str(row.get("Client")),
+        "Lignes de la commande/Produit": energie,
+        "Lignes de la commande/Type d'affichage": "",
+        "Lignes de la commande/Description1.1": f"Contrat Energie {energie}".strip(),
+        "Lignes de la commande/Description2": "",
+        "Lignes de la commande/Description": "",
+        "Lignes de la commande/Description3": "",
+        "Lignes de la commande/Description4": "",
+        "Lignes de la commande/Description5": "",
+        "Lignes de la commande/Description6": "",
+        "Lignes de la commande/Quantité": "1",
+        "Lignes de la commande/Prix Unitaire": row.get("Lignes de la commande/Prix Unitaire", 0) if not pd.isna(row.get("Lignes de la commande/Prix Unitaire", 0)) else 0,
+        "Lignes de la commande/Distribution Analytique": build_distribution_json(row),
+    }
+
+
+def build_note_row(row):
+    raison_sociale = to_str(row.get("Lignes de la commande/Description1"))
+    pdl = to_str(row.get("PDL"))
+    date_signature = format_date_for_note(row.get("Lignes de la commande/Date de signature"))
+    date_debut = format_date_for_note(row.get("Lignes de la commande/Description3"))
+    date_fin = format_date_for_note(row.get("Lignes de la commande/Description4"))
+    duree = to_str(row.get("Lignes de la commande/Description5"))
+    car = format_number_fr(safe_round(row.get("Lignes de la commande/Description6"), 3), 3)
+
+    return {
+        "Client": "",
+        "Lignes de la commande/Produit": "",
+        "Lignes de la commande/Type d'affichage": "NOTE",
+        "Lignes de la commande/Description1.1": f"RAISON SOCIALE : {raison_sociale}" if raison_sociale else "RAISON SOCIALE : ",
+        "Lignes de la commande/Description2": f"PDL : {pdl}" if pdl else "PDL : ",
+        "Lignes de la commande/Description": f"Date de signature : {date_signature}" if date_signature else "Date de signature : ",
+        "Lignes de la commande/Description3": f"Date de début contrat : {date_debut}" if date_debut else "Date de début contrat : ",
+        "Lignes de la commande/Description4": f"Date de fin de contrat : {date_fin}" if date_fin else "Date de fin de contrat : ",
+        "Lignes de la commande/Description5": f"Durée du contrat (en mois) : {duree}" if duree else "Durée du contrat (en mois) : ",
+        "Lignes de la commande/Description6": f"Consommation annuelle de référence (CAR) : {car}  MWh/an" if car else "Consommation annuelle de référence (CAR) : 0  MWh/an",
+        "Lignes de la commande/Quantité": "",
+        "Lignes de la commande/Prix Unitaire": "",
+        "Lignes de la commande/Distribution Analytique": "",
+    }
+
+
+def dedupe_client_on_product_rows(df_final):
+    last_client = None
+    for idx in df_final.index:
+        display_type = to_str(df_final.at[idx, "Lignes de la commande/Type d'affichage"])
+        client = to_str(df_final.at[idx, "Client"])
+        if display_type == "NOTE":
+            df_final.at[idx, "Client"] = ""
+            continue
+        if client == last_client:
+            df_final.at[idx, "Client"] = ""
+        elif client:
+            last_client = client
+    return df_final
 
 
 # =========================
 # TRANSFORMATION PRINCIPALE
 # =========================
-def transform_import_odoo(
-    input_excel_path,
-    referentiel_path,
-    output_excel_path=None,
-    sheet_name="Copie de Import Odoo",
-):
+def transform_import_odoo(input_excel_path, referentiel_path, output_excel_path=None, sheet_name="Copie de Import Odoo"):
     input_excel_path = Path(input_excel_path)
     referentiel_path = Path(referentiel_path)
 
@@ -261,9 +290,10 @@ def transform_import_odoo(
     else:
         output_excel_path = Path(output_excel_path)
 
+    # Lecture brute
     df = pd.read_excel(input_excel_path, sheet_name=sheet_name, header=None, dtype=object)
 
-    # Reproduction du comportement Power Query : on garde à partir de la ligne 16
+    # Reprise de la logique historique Power Query
     df = df.iloc[15:].copy().reset_index(drop=True)
     df.columns = [f"Column{i}" for i in range(1, len(df.columns) + 1)]
 
@@ -283,7 +313,7 @@ def transform_import_odoo(
         "Date de Début Souhaitée": "Lignes de la commande/Description3",
         "Date de fin contrat CE": "Lignes de la commande/Description4",
         "Account Name": "Lignes de la commande/Description1",
-        "Compteur": "Lignes de la commande/Description2",
+        "Compteur": "PDL",
         "Durée": "Lignes de la commande/Description5",
         "CAR validée fournisseur (MWh)": "Lignes de la commande/Description6",
         "Propriétaire de l'opportunité": "Vendeur",
@@ -292,111 +322,57 @@ def transform_import_odoo(
         "Gestionnaire": "Apporteur d'affaire",
         "Prévisionnel commision": "Lignes de la commande/Prix Unitaire",
         "Date de signature": "Lignes de la commande/Date de signature",
-        "Column19": "Lignes de la commande/Distribution Analytique",
     }
     df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
 
-    maps, ref_df = load_referentiel(referentiel_path)
+    # suppression des lignes totalement vides sur le périmètre utile
+    useful_cols = [
+        c for c in [
+            "Client",
+            "Lignes de la commande/Produit",
+            "Lignes de la commande/Description1",
+            "PDL",
+            "Lignes de la commande/Prix Unitaire",
+            "Pourcentage.1",
+            "Apporteur d'affaire",
+            "Vendeur",
+            "Type",
+        ] if c in df.columns
+    ]
+    if useful_cols:
+        mask_not_empty = df[useful_cols].fillna("").astype(str).apply(lambda s: s.str.strip()).ne("").any(axis=1)
+        df = df.loc[mask_not_empty].copy()
 
-    if "Lignes de la commande/Description2" in df.columns:
-        df = df.rename(columns={"Lignes de la commande/Description2": "PDL"})
-        df["Lignes de la commande/Description2"] = (
-            "PDL : " + df["PDL"].fillna("").astype(str).str.strip()
-        )
-        df = df.drop(columns=["PDL"])
-
-    if "Lignes de la commande/Date de signature" in df.columns:
-        df["Lignes de la commande/Description"] = (
-            "Date de signature : "
-            + df["Lignes de la commande/Date de signature"].fillna("").astype(str).str.strip()
-        )
-
-    if "Lignes de la commande/Description1" in df.columns:
-        df["Lignes de la commande/Description1"] = (
-            "RAISON SOCIALE : "
-            + df["Lignes de la commande/Description1"].fillna("").astype(str).str.strip()
-        )
-
-    if "Lignes de la commande/Description5" in df.columns:
-        df["Lignes de la commande/Description5"] = (
-            "Durée du contrat (en mois) : "
-            + df["Lignes de la commande/Description5"].fillna("").astype(str).str.strip()
-        )
-
-    if "Lignes de la commande/Description6" in df.columns:
-        df["Lignes de la commande/Description6_num"] = (
-            df["Lignes de la commande/Description6"].apply(safe_round)
-        )
-        df["Lignes de la commande/Description6"] = (
-            "Consommation annuelle de référence (CAR) : "
-            + df["Lignes de la commande/Description6_num"].apply(lambda x: format_number_fr(x, 3))
-            + " MWh/an"
-        )
-
-    if "Lignes de la commande/Description3" in df.columns:
-        df["Lignes de la commande/Description3"] = (
-            "Date de début contrat : "
-            + df["Lignes de la commande/Description3"].fillna("").astype(str).str.strip()
-        )
-
-    if "Lignes de la commande/Description4" in df.columns:
-        df["Lignes de la commande/Description4"] = (
-            "Date de fin de contrat : "
-            + df["Lignes de la commande/Description4"].fillna("").astype(str).str.strip()
-        )
-
-    df = build_codes_from_referentiel(df, maps)
-
-    # Suppression des 4 dernières lignes comme dans Power Query
+    # suppression des 4 dernières lignes parasites comme le script historique
     if len(df) >= 4:
         df = df.iloc[:-4].copy()
 
-    df["Pourcentage.1"] = pd.to_numeric(df["Pourcentage.1"], errors="coerce").fillna(0)
-    df["Pourcentage"] = df["Pourcentage.1"].apply(lambda x: to_percent_int(x, default=0)).fillna(0).astype(int)
+    # normalisation des champs numériques sensibles
+    if "Lignes de la commande/Prix Unitaire" in df.columns:
+        df["Lignes de la commande/Prix Unitaire"] = pd.to_numeric(
+            df["Lignes de la commande/Prix Unitaire"].astype(str).str.replace(",", ".", regex=False),
+            errors="coerce"
+        ).fillna(0)
 
-    analytics = df.apply(build_analytics, axis=1, result_type="expand")
-    analytics.columns = ["Lignes de la commande/Distribution Analytique", "Erreur analytique"]
-    df = pd.concat([df, analytics], axis=1)
+    if "Pourcentage.1" not in df.columns:
+        df["Pourcentage.1"] = 0
+    df["Pourcentage.1"] = df["Pourcentage.1"].apply(lambda x: parse_percent_to_int(x, default=0))
 
-    # On ne garde que les lignes valides pour éviter un import Odoo cassé
-    df_valid = df[df["Erreur analytique"].eq("")].copy()
-    df_errors = df[df["Erreur analytique"].ne("")].copy()
+    maps, _ = load_referentiel(referentiel_path)
+    df = build_codes_from_referentiel(df, maps)
 
-    # Lignes produit facturables : surtout pas de Type d'affichage = NOTE
-    df_valid["Lignes de la commande/Quantité"] = "1"
-    df_valid["Lignes de la commande/Description1.1"] = (
-        "Contrat Energie " + df_valid["Lignes de la commande/Produit"].fillna("").astype(str).str.strip()
-    )
-
-    cols_to_drop = [
-        "Valeur:Produit",
-        "Gestionnaire-BU",
-        "Codes OK",
-        "Pourcentage",
-        "Capitole Energie AA",
-        "AA_interne",
-        "Lignes de la commande/Distribution Analytique1",
-        "Analytics fusion",
-        "Analytics OK pour fusion",
-        "2me Ligne pour fusion",
-        "2me Ligne",
-        "Vendeur",
-        "Type",
-        "Apporteur d'affaire",
-        "Pourcentage.1",
-        "Montant rétrocession Total",
-        "Mois pour facturation ↑",
-        "Lignes de la commande/Date de signature",
-        "Lignes de la commande/Description6_num",
-    ]
-    cols_to_drop = [c for c in cols_to_drop if c in df_valid.columns]
-    df_valid = df_valid.drop(columns=cols_to_drop)
+    # construction des lignes au format exact du fichier macro:
+    # 1 ligne produit puis 1 ligne note
+    output_rows = []
+    for _, row in df.iterrows():
+        output_rows.append(build_product_row(row))
+        output_rows.append(build_note_row(row))
 
     final_columns = [
         "Client",
         "Lignes de la commande/Produit",
+        "Lignes de la commande/Type d'affichage",
         "Lignes de la commande/Description1.1",
-        "Lignes de la commande/Description1",
         "Lignes de la commande/Description2",
         "Lignes de la commande/Description",
         "Lignes de la commande/Description3",
@@ -407,17 +383,11 @@ def transform_import_odoo(
         "Lignes de la commande/Prix Unitaire",
         "Lignes de la commande/Distribution Analytique",
     ]
-    final_columns_existing = [c for c in final_columns if c in df_valid.columns]
-    df_final = df_valid[final_columns_existing].copy()
 
-    # Export principal
+    df_final = pd.DataFrame(output_rows, columns=final_columns)
+    df_final = dedupe_client_on_product_rows(df_final)
+
     df_final.to_excel(output_excel_path, index=False)
-
-    # Export rejet si besoin
-    if not df_errors.empty:
-        error_path = output_excel_path.with_name(f"{output_excel_path.stem}_erreurs.xlsx")
-        df_errors.to_excel(error_path, index=False)
-
     return df_final, output_excel_path
 
 
