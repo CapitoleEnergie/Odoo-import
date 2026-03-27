@@ -221,7 +221,7 @@ def build_distribution_json(row):
 def build_product_row(row):
     energie = to_str(row.get("Lignes de la commande/Produit"))
     return {
-        "Client": to_str(row.get("Fournisseur")).strip(),
+        "Client": to_str(row.get("Client")).strip(),
         "Lignes de la commande/Produit": energie,
         "Lignes de la commande/Type d'affichage": "",
         "Lignes de la commande/Description1.1": f"Contrat Energie {energie}".strip(),
